@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { View, Text, TextInput, Button } from 'react-native';
-import walletStore from './stores/WalletStore';
+import walletStore from './src/stores/WalletStore';
 
 const App = observer(() => {
   useEffect(() => {
