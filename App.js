@@ -1,115 +1,7 @@
 import React, { useEffect } from 'react';
-import { View, Text, Button, TextInput } from 'react-native';
-import { observer } from 'mobx-react-lite';
-import walletStore from '.src/stores/WalletStore';
-
-const ImportBitcoinWalletScreen = () => {
-  const [privateKey, setPrivateKey] = React.useState('');
-
-  const handleImport = () => {
-    walletStore.importBitcoinWallet(privateKey);
-  };
-
-  return (
-    <View>
-      <Text>Import Bitcoin Wallet</Text>
-      <TextInput
-        placeholder="Enter private key"
-        value={privateKey}
-        onChangeText={setPrivateKey}
-      />
-      <Button title="Import" onPress={handleImport} />
-    </View>
-  );
-};
-
-const ImportPolygonWalletScreen = () => {
-  const [privateKey, setPrivateKey] = React.useState('');
-
-  const handleImport = () => {
-    walletStore.importPolygonWallet(privateKey);
-  };
-
-  return (
-    <View>
-      <Text>Import Polygon Wallet</Text>
-      <TextInput
-        placeholder="Enter private key"
-        value={privateKey}
-        onChangeText={setPrivateKey}
-      />
-      <Button title="Import" onPress={handleImport} />
-    </View>
-  );
-};
-
-const SwitchNetworkScreen = () => {
-  const handleSwitchNetwork = (network) => {
-    walletStore.switchNetwork(network);
-  };
-
-  return (
-    <View>
-      <Text>Switch Network</Text>
-      <Button title="Bitcoin" onPress={() => handleSwitchNetwork('bitcoin')} />
-      <Button title="Polygon" onPress={() => handleSwitchNetwork('polygon')} />
-    </View>
-  );
-};
-
-const LivePricesScreen = () => {
-  useEffect(() => {
-    walletStore.fetchLivePrices();
-  }, []);
-
-  return (
-    <View>
-      <Text>Live Prices</Text>
-      <Text>Bitcoin: {walletStore.livePrices.bitcoin?.usd}</Text>
-      <Text>USDT: {walletStore.livePrices.usdt?.usd}</Text>
-    </View>
-  );
-};
-
-const SendTransactionScreen = () => {
-  const [receiverAddress, setReceiverAddress] = React.useState('');
-  const [amount, setAmount] = React.useState('');
-
-  const handleSendTransaction = () => {
-    walletStore.sendTransaction(receiverAddress, amount);
-  };
-
-  return (
-    <View>
-      <Text>Send Transaction</Text>
-      <TextInput
-        placeholder="Receiver Address"
-        value={receiverAddress}
-        onChangeText={setReceiverAddress}
-      />
-      <TextInput
-        placeholder="Amount"
-        value={amount}
-        onChangeText={setAmount}
-        keyboardType="numeric"
-      />
-      <Button title="Send" onPress={handleSendTransaction} />
-    </View>
-  );
-};
-
-const TransactionHistoryScreen = () => {
-  useEffect(() => {
-    walletStore.fetchTransactionHistory();
-  }, []);
-
-  return (
-    <View>
-      <Text>Transaction History</Text>
-      {/* Display the transaction history and status */}
-    </View>
-  );
-};
+import { observer } from 'mobx-react';
+import { View, Text, TextInput, Button } from 'react-native';
+import walletStore from './stores/WalletStore';
 
 const App = observer(() => {
   useEffect(() => {
@@ -117,24 +9,49 @@ const App = observer(() => {
     walletStore.fetchTransactionHistory();
   }, []);
 
-  const renderScreen = () => {
-    switch (walletStore.currentNetwork) {
-      case 'bitcoin':
-        return <ImportBitcoinWalletScreen />;
-      case 'polygon':
-        return <ImportPolygonWalletScreen />;
-      default:
-        return null;
-    }
+  const handleBitcoinImport = () => {
+    const privateKey = '...'; // Replace with the actual private key for Bitcoin wallet import
+    walletStore.importBitcoinWallet(privateKey);
+  };
+
+  const handlePolygonImport = () => {
+    const privateKey = '...'; // Replace with the actual private key for Polygon wallet import
+    walletStore.importPolygonWallet(privateKey);
+  };
+
+  const handleNetworkSwitch = (network) => {
+    walletStore.switchNetwork(network);
+  };
+
+  const handleSendTransaction = () => {
+    // Handle sending transaction logic
   };
 
   return (
     <View>
-      {renderScreen()}
-      <SwitchNetworkScreen />
-      <LivePricesScreen />
-      <SendTransactionScreen />
-      <TransactionHistoryScreen />
+      <Text>Bitcoin Wallet: {walletStore.bitcoinWallet}</Text>
+      <Text>Polygon Wallet: {walletStore.polygonWallet}</Text>
+
+      <Button title="Import Bitcoin Wallet" onPress={handleBitcoinImport} />
+      <Button title="Import Polygon Wallet" onPress={handlePolygonImport} />
+
+      <Text>Current Network: {walletStore.currentNetwork}</Text>
+      <Button title="Switch to Bitcoin Network" onPress={() => handleNetworkSwitch('bitcoin')} />
+      <Button title="Switch to Polygon Network" onPress={() => handleNetworkSwitch('polygon')} />
+
+      <Text>Bitcoin Price: {walletStore.livePrices.bitcoin?.usd}</Text>
+      {walletStore.currentNetwork === 'polygon' && (
+        <Text>USDT Price: {walletStore.livePrices.usdt?.usd}</Text>
+      )}
+
+      <TextInput placeholder="Receiver Address" />
+      <TextInput placeholder="Amount" />
+      <Button title="Send Transaction" onPress={handleSendTransaction} />
+
+      <Text>Transaction History:</Text>
+      {walletStore.transactionHistory.map((transaction) => (
+        <Text key={transaction.id}>{transaction.status}: {transaction.amount}</Text>
+      ))}
     </View>
   );
 });
