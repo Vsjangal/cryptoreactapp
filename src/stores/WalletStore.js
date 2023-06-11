@@ -1,64 +1,81 @@
-import { makeAutoObservable } from 'mobx';
+import { observable, action, runInAction } from 'mobx';
+import axios from 'axios';
+import endpoints from '../api';
 
-const walletStore = {
-  network: 'bitcoin',
-  priceBitcoin: 0,
-  priceUSDT: 0,
-  transactionHistory: [],
-  isLoading: false,
+class WalletStore {
+  @observable
+  bitcoinWallet = '';
 
-  async fetchBitcoinPrice() {
+  @observable
+  polygonWallet = '';
+
+  @observable
+  currentNetwork = 'bitcoin';
+
+  @observable
+  livePrices = {};
+
+  @action
+  importBitcoinWallet = async (privateKey) => {
     try {
-      this.setLoading(true);
-      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-      const data = await response.json();
-      this.setBitcoinPrice(data.bitcoin.usd);
+      const response = await axios.post(endpoints.bitcoinWalletImport, { privateKey });
+      runInAction(() => {
+        this.bitcoinWallet = response.data.wallet;
+      });
     } catch (error) {
-      console.error('Error fetching Bitcoin price:', error);
-    } finally {
-      this.setLoading(false);
+      console.error('Failed to import Bitcoin wallet:', error);
     }
-  },
+  };
 
-  async fetchUSDTPrice() {
+  @action
+  importPolygonWallet = async (privateKey) => {
     try {
-      this.setLoading(true);
-      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd');
-      const data = await response.json();
-      this.setUSDTPrice(data.tether.usd);
+      const response = await axios.post(endpoints.polygonWalletImport, { privateKey });
+      runInAction(() => {
+        this.polygonWallet = response.data.wallet;
+      });
     } catch (error) {
-      console.error('Error fetching USDT price:', error);
-    } finally {
-      this.setLoading(false);
+      console.error('Failed to import Polygon wallet:', error);
     }
-  },
+  };
 
-  // ... other actions
+  @action
+  switchNetwork = (network) => {
+    this.currentNetwork = network;
+  };
 
-  setNetwork(network) {
-    this.network = network;
-  },
+  @action
+  fetchLivePrices = async () => {
+    try {
+      const response = await axios.get(endpoints.livePrices);
+      runInAction(() => {
+        this.livePrices = response.data;
+      });
+    } catch (error) {
+      console.error('Failed to fetch live prices:', error);
+    }
+  };
 
-  setBitcoinPrice(price) {
-    this.priceBitcoin = price;
-  },
+  @action
+  sendTransaction = async (receiverAddress, amount) => {
+    try {
+      // Make API call to send the transaction using the current network, receiver address, and amount
+      // Update the transaction history and status accordingly
+    } catch (error) {
+      console.error('Failed to send transaction:', error);
+    }
+  };
 
-  setUSDTPrice(price) {
-    this.priceUSDT = price;
-  },
+  @action
+  fetchTransactionHistory = async () => {
+    try {
+      const response = await axios.get(endpoints.transactionHistory);
+      // Update the transaction history state with the fetched data
+    } catch (error) {
+      console.error('Failed to fetch transaction history:', error);
+    }
+  };
+}
 
-  setTransactionHistory(history) {
-    this.transactionHistory = history;
-  },
-
-  setLoading(isLoading) {
-    this.isLoading = isLoading;
-  },
-};
-
-makeAutoObservable(walletStore, {
-  fetchBitcoinPrice: async,
-  fetchUSDTPrice: async,
-});
-
+const walletStore = new WalletStore();
 export default walletStore;
