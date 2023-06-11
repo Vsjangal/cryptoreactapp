@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, Button, TextInput } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import walletStore from './stores/WalletStore';
+import walletStore from '.src/stores/WalletStore';
 
 const ImportBitcoinWalletScreen = () => {
   const [privateKey, setPrivateKey] = React.useState('');
