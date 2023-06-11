@@ -1,8 +1,12 @@
 import { observable, action, runInAction } from 'mobx';
 import axios from 'axios';
-import endpoints from '../api';
+import endpoints from '../../api';
+import { MaticPOSClient } from '@polygonproject/maticjs';
 
 class WalletStore {
+  @observable
+  currentNetwork = 'bitcoin';
+
   @observable
   bitcoinWallet = '';
 
@@ -10,10 +14,10 @@ class WalletStore {
   polygonWallet = '';
 
   @observable
-  currentNetwork = 'bitcoin';
+  livePrices = {};
 
   @observable
-  livePrices = {};
+  transactionHistory = [];
 
   @action
   importBitcoinWallet = async (privateKey) => {
@@ -58,19 +62,16 @@ class WalletStore {
 
   @action
   sendTransaction = async (receiverAddress, amount) => {
-    try {
-      // Make API call to send the transaction using the current network, receiver address, and amount
-      // Update the transaction history and status accordingly
-    } catch (error) {
-      console.error('Failed to send transaction:', error);
-    }
+    // Send transaction logic
   };
 
   @action
   fetchTransactionHistory = async () => {
     try {
       const response = await axios.get(endpoints.transactionHistory);
-      // Update the transaction history state with the fetched data
+      runInAction(() => {
+        this.transactionHistory = response.data;
+      });
     } catch (error) {
       console.error('Failed to fetch transaction history:', error);
     }
